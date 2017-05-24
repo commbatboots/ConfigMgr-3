@@ -42,9 +42,9 @@ Function New-WCMCollectionVariable {
 	.EXAMPLE
 	New-WCMCollectionVariable -Name MyCollectionVariable - Value "Example hidden value" -HideValueInConsole $True
 	#>
-    [CmdLetBinding()]
+	[CmdLetBinding()]
     
-    Param(
+	Param(
         [Parameter(Mandatory=$True,HelpMessage='Provide the name of the variable to create',Position=1,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
         [String] $Name,
 
@@ -66,7 +66,7 @@ Function New-WCMCollectionVariable {
 		[Parameter(HelpMessage='Set to true if the value should be hidden when viewed in the console')]
         [Parameter(Position=3,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
         [String] $HideValueInConsole = $False
-    )
+	)
 
     Begin {
         If( $ComputerName -ne "." ) {
