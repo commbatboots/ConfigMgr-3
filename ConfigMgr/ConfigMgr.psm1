@@ -7,6 +7,20 @@
 		[String] $ComputerName
 	)
 
+	Try {
+        $locationProvider = Get-CimInstance -ClassName "SMS_ProviderLocation" -Namespace "Root\SMS" -ComputerName $ComputerName -ErrorAction SilentlyContinue
+            
+        If( ($locationProvider -eq $null) -or ($locationProvider.SiteCode -eq "")) {
+            Throw [System.Management.Automation.ItemNotFoundException] "No valid sitecode found on $($ComputerName)"
+        }
+        Else {
+			Return $locationProvider.SiteCode
+        }
+    } Catch {
+        Write-Error -Exception $_ -Category InvalidResult
+    }
+
+	Return $null
 }
 
 Function New-WCMCollectionVariable {
@@ -42,27 +56,13 @@ Function New-WCMCollectionVariable {
     )
 
     Begin {
-        #region Setup
         If( $ComputerName -ne "." ) {
             Write-Verbose "Using remote computer '$ComputerName'"
         }
 
         If( $Site -eq "" ) {
             Write-Verbose "No site code was provided, attempt auto detection"
-        
-            Try {
-                $locationProvider = Get-CimInstance -ClassName "SMS_ProviderLocation" -Namespace "Root\SMS" -ComputerName $ComputerName -ErrorAction SilentlyContinue
-            
-                If( ($locationProvider -eq $null) -or ($locationProvider.SiteCode -eq "")) {
-                    Throw [System.Management.Automation.ItemNotFoundException] "No valid sitecode found on $($ComputerName)"
-                }
-                Else {
-                    Write-Verbose "Setting site code to $($locationProvider.SiteCode)"
-                    $Site = $locationProvider.SiteCode
-                }
-            } Catch {
-                Write-Error -Exception $_ -Category InvalidResult
-            }
+            $Site = Get-WCMSiteCode -ComputerName $ComputerName -ErrorAction Stop
         }
     }
 
