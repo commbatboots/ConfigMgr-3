@@ -1,16 +1,65 @@
-<Function Get-WCMSiteCode {
-	[CmdLetBinding()]
+Function Get-WCMSiteCode {
+	<#
+	.SYNOPSIS
+	Get the SCCM Site Code of a given system
+	.DESCRIPTION
+	Get the SCCM Site Code of a given system
+	.EXAMPLE
+	Get-WCMSiteCode -ComputerName 'SCCM01.domain.ext'
+	#>
+	[CmdletBinding()]
 
 	Param(
 		[Parameter(Mandatory=$True)]
 		[ValidateScript({Test-Connection $_ -Count 1 -Quiet})]
 		[String] $ComputerName
 	)
+        
+    Try {
+        $locationProvider = Get-CimInstance -ClassName "SMS_ProviderLocation" -Namespace "Root\SMS" -ComputerName $ComputerName -ErrorAction SilentlyContinue
+            
+        If( ($locationProvider -eq $null) -or ($locationProvider.SiteCode -eq "")) {
+            Throw [System.Management.Automation.ItemNotFoundException] "No valid sitecode found on $($ComputerName)"
+        }
+        Else {
+            Write-Verbose "Setting site code to $($locationProvider.SiteCode)"
+            Return $locationProvider.SiteCode
+        }
+    } Catch {
+        Write-Error -Exception $_ -Category InvalidResult
+    }
 
+	Return $Null
+}
+
+Function ConvertTo-WCMCollectionIdentifier
+{
+	<#
+	.SYNOPSIS
+	Convert a collection name to and collection identifier
+	.DESCRIPTION
+	Convert a collection name to and collection identifier
+	.EXAMPLE
+	ConvertTo-WCMCollectionIdentifier -CollectionName 'Example-Collection'
+	#>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$True, ValueFromPipelineByPropertyName=$true,Position=0)]
+        [String] $CollectionName
+	)
+
+    Begin {
+          
+    }
+
+    Process {
+          
+    }
 }
 
 Function New-WCMCollectionVariable {
-	<#.Synopsis
+	<#
+	.SYNOPSIS
 	Add a collection variable
 	.DESCRIPTION
 	Add a collection variable to an ConfigMgr collection
@@ -42,27 +91,13 @@ Function New-WCMCollectionVariable {
     )
 
     Begin {
-        #region Setup
         If( $ComputerName -ne "." ) {
             Write-Verbose "Using remote computer '$ComputerName'"
         }
 
         If( $Site -eq "" ) {
-            Write-Verbose "No site code was provided, attempt auto detection"
-        
-            Try {
-                $locationProvider = Get-CimInstance -ClassName "SMS_ProviderLocation" -Namespace "Root\SMS" -ComputerName $ComputerName -ErrorAction SilentlyContinue
-            
-                If( ($locationProvider -eq $null) -or ($locationProvider.SiteCode -eq "")) {
-                    Throw [System.Management.Automation.ItemNotFoundException] "No valid sitecode found on $($ComputerName)"
-                }
-                Else {
-                    Write-Verbose "Setting site code to $($locationProvider.SiteCode)"
-                    $Site = $locationProvider.SiteCode
-                }
-            } Catch {
-                Write-Error -Exception $_ -Category InvalidResult
-            }
+			Write-Verbose "No site code was provided, attempt auto detection"
+            Get-WCMSiteCode -ComputerName $ComputerName
         }
     }
 
@@ -86,4 +121,43 @@ Function New-WCMCollectionVariable {
         #$objCollectionSetting.Put() | Out-Null
         #Write-Output "Sucessfully created collection variable $Name with value $Value"
     }
+}
+
+Function Get-WCMCollectionVariable
+{
+	<#
+	.SYNOPSIS
+	Get the current instance of an collection variable
+	.DESCRIPTION
+	Get the current instance of an collection variable
+	.EXAMPLE
+	Get-WCMCollectionVariable -CollectionName 'Example-Collection' -
+	.EXAMPLE
+	<!<SnippetAnotherExample>!>
+	#>
+    [CmdletBinding()]
+    
+    param
+    (
+        # <!<SnippetParam1Help>!>
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true,Position=0)]
+        $parameter1,
+
+        # <!<SnippetParam2Help>!>
+        [int]$parameter2)
+
+        Begin
+        {
+          
+        }
+
+        Process
+        {
+          
+        }
+
+        End
+        {
+
+        }
 }
