@@ -10,7 +10,7 @@ Function Get-WCMSiteCode {
 	[CmdletBinding()]
 
 	Param(
-		[Parameter(Mandatory=$True)]
+		[Parameter(Mandatory=$True,HelpMessage='Provide the computername')]
 		[ValidateScript({Test-Connection $_ -Count 1 -Quiet})]
 		[String] $ComputerName
 	)
@@ -68,27 +68,31 @@ Function New-WCMCollectionVariable {
 	.EXAMPLE
 	New-WCMCollectionVariable -Name MyCollectionVariable - Value "Example hidden value" -HideValueInConsole $True
 	#>
-    [CmdLetBinding()]
+	[CmdLetBinding()]
     
-    Param(
-        [Parameter(Mandatory=$True,Position=1,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
+	Param(
+        [Parameter(Mandatory=$True,HelpMessage='Provide the name of the variable to create',Position=1,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
         [String] $Name,
 
-        [Parameter(Mandatory=$True,Position=2,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(Mandatory=$True,HelpMessage='Provide the value of the variable to create',Position=2,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
         [String] $Value,
         
+		[Parameter(HelpMessage='Provide the (remote) computername of the site server where de collection variable will be created')]
         [ValidateScript({ Test-Connection -ComputerName $_ -Count 1 -Quiet })]
         [String] $ComputerName = ".",
 
+		[Parameter(HelpMessage='Provide the site code of the site (is blank, auto detection will be attempted)')]
         [ValidateLength(3,3)]
         [String] $Site,
 
+		[Parameter(HelpMessage='Provide the collection identifier of the targeted collection')]
         [Parameter(Mandatory=$True)]
         [String] $CollectionID,
         
+		[Parameter(HelpMessage='Set to true if the value should be hidden when viewed in the console')]
         [Parameter(Position=3,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
         [String] $HideValueInConsole = $False
-    )
+	)
 
     Begin {
         If( $ComputerName -ne "." ) {
@@ -96,8 +100,8 @@ Function New-WCMCollectionVariable {
         }
 
         If( $Site -eq "" ) {
-			Write-Verbose "No site code was provided, attempt auto detection"
-            Get-WCMSiteCode -ComputerName $ComputerName
+            Write-Verbose "No site code was provided, attempt auto detection"
+            $Site = Get-WCMSiteCode -ComputerName $ComputerName -ErrorAction Stop
         }
     }
 
